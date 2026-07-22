@@ -46,12 +46,30 @@ async function gnewsGet(apiKey: string, path: string, params: Record<string, str
   }
   url.searchParams.set('apikey', apiKey);
 
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GNews API error (${res.status}): ${text}`);
+  // The shared platform key hits GNews's per-second burst limit (429 "too many
+  // requests in a short period") under concurrent traffic — the pack's top
+  // error class. Retry 429/5xx with backoff; the burst window clears in ~1s.
+  // A non-429 4xx (bad request / invalid key) fails fast.
+  let lastStatus = 0;
+  let lastText = '';
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(url.toString());
+    if (res.ok) return res.json();
+    lastStatus = res.status;
+    lastText = await res.text();
+    if ((lastStatus !== 429 && lastStatus < 500) || attempt === 2) break;
+    await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
   }
-  return res.json();
+  // GNews's free tier is 100 requests/day, so the SHARED platform key routinely
+  // exhausts its daily quota (403) or per-second burst (429 after retries) — the
+  // pack's dominant error. Don't dead-end: point the agent at our KEYLESS news
+  // sources so it gets news anyway, or its own key for a dedicated quota.
+  if (lastStatus === 403 || lastStatus === 429) {
+    throw new Error(
+      `GNews shared quota exhausted (HTTP ${lastStatus}; free tier is 100/day). For news right now, use a keyless Pipeworx news source instead — gdelt (global news search), currents, mediastack, or us-news-feeds. Or pass your own GNews key via _apiKey (free at gnews.io) for a dedicated quota.`,
+    );
+  }
+  throw new Error(`GNews API error (${lastStatus}): ${lastText}`);
 }
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -141,19 +159,56 @@ async function callTool(name: string, args: Record<string, unknown>): Promise<un
 
 // ── Tool implementations ─────────────────────────────────────────────
 
+// GNews query syntax rejects unbalanced double-quotes and stray operator
+// punctuation. Agents pass natural-language questions ("What's the news on
+// AT&T's /new/ CEO?") that trip the 400 "query has a syntax error". Balance
+// quotes preemptively (zero-risk); on a syntax 400, retry once with a
+// hard-stripped query so a malformed question still returns news.
+function balanceGnewsQuotes(q: string): string {
+  const quotes = (q.match(/"/g) ?? []).length;
+  return quotes % 2 === 0 ? q : q.replace(/"/g, '');
+}
+function hardSanitizeGnewsQuery(q: string): string {
+  return q
+    .replace(/["'()]/g, ' ')       // quotes / parens
+    .replace(/[\\/^~*?:!&|]/g, ' ') // reserved / breaking punctuation
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 async function searchNews(apiKey: string, args: Record<string, unknown>) {
+  const rawQuery = balanceGnewsQuotes(String(args.query ?? '').trim());
   const params: Record<string, string> = {
-    q: args.query as string,
+    q: rawQuery,
     lang: (args.lang as string) ?? 'en',
     max: String(Math.min(100, Math.max(1, (args.max as number) ?? 10))),
   };
   if (args.country) params.country = args.country as string;
 
-  const data = (await gnewsGet(apiKey, 'search', params)) as GNewsResponse;
+  let data: GNewsResponse;
+  let sanitized_query: string | undefined;
+  try {
+    data = (await gnewsGet(apiKey, 'search', params)) as GNewsResponse;
+  } catch (err) {
+    const msg = (err as Error).message;
+    const cleaned = hardSanitizeGnewsQuery(rawQuery);
+    // Retry only a genuine query-syntax 400, and only if stripping changed
+    // something (else we'd just re-hit the same error). Other errors re-throw.
+    if (/\b400\b/.test(msg) && /syntax/i.test(msg) && cleaned && cleaned !== rawQuery) {
+      params.q = cleaned;
+      data = (await gnewsGet(apiKey, 'search', params)) as GNewsResponse;
+      sanitized_query = cleaned;
+    } else {
+      throw err;
+    }
+  }
 
   return {
     total_articles: data.totalArticles ?? data.articles.length,
     returned: data.articles.length,
+    ...(sanitized_query
+      ? { sanitized_query, note: `Original query had GNews syntax issues; retried with a cleaned query: "${sanitized_query}".` }
+      : {}),
     articles: data.articles.map(formatArticle),
   };
 }

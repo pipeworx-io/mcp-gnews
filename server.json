@@ -3,7 +3,7 @@
   "name": "io.github.pipeworx-io/gnews",
   "title": "Gnews",
   "description": "GNews MCP — Global news search via GNews API (gnews.io)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "websiteUrl": "https://pipeworx.io/packs/gnews",
   "repository": {
     "url": "https://github.com/pipeworx-io/mcp-gnews",
