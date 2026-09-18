@@ -78,3 +78,7 @@ The gateway picks the right tool and fills the arguments automatically.
 ## License
 
 MIT
+
+## No MCP client? Call it over HTTP
+
+Our gnews key is reserved for paid accounts, so an anonymous call to `POST https://gateway.pipeworx.io/v1/tools/gnews_search_news` needs your own key passed as `_apiKey` alongside the arguments. Inspect any tool: `GET https://gateway.pipeworx.io/v1/tools/gnews_search_news`. Find one: `POST https://gateway.pipeworx.io/v1/tools/search_packs` with `{"query":"..."}`.
