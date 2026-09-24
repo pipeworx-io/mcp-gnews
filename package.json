@@ -1,20 +1,32 @@
 {
   "name": "@pipeworx/mcp-gnews",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "GNews MCP — Global news search via GNews API (gnews.io)",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "bin": {
+    "mcp-gnews": "bin/cli.js"
+  },
   "keywords": ["mcp", "mcp-server", "model-context-protocol", "pipeworx", "gnews"],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pipeworx-io/mcp-gnews"
+    "url": "git+https://github.com/pipeworx-io/mcp-gnews.git"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "tsx": "^4.19.0"
+  },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "typescript": "^5.9.3",
+    "@cloudflare/workers-types": "^4.20260405.1"
+  },
+  "pipeworx": {
+    "sourceHash": "v1-c565cc4435a1d376f19c7c8648d120d16525f1ec1303c75e0175a4105da6cf47",
+    "sourceCommit": "76aa8f5d9b5dc2f665563030647c68e661478864"
   }
 }
