@@ -783,7 +783,7 @@ const tools: McpToolExport['tools'] = [
   {
     name: 'search_news',
     description:
-      'GNews API (gnews.io) keyword search over recent articles from mainstream news publishers (e.g., "climate change", "AI regulation"). Returns title, description, content snippet, source, and publication date. Supports language and country filters.',
+      'Search global news articles by keyword (e.g., "climate change", "AI regulation"). Returns title, description, content snippet, source, and publication date. Supports language and country filters.',
     inputSchema: {
       type: 'object' as const,
       properties: {

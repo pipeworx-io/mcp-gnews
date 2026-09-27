@@ -8,7 +8,7 @@ Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents 
 
 | Tool | Description |
 |------|-------------|
-| `search_news` | GNews API (gnews.io) keyword search over recent articles from mainstream news publishers (e.g., "climate change", "AI regulation"). Returns title, description, content snippet, source, and publication date. Supports language and country filters. |
+| `search_news` | Search global news articles by keyword (e.g., "climate change", "AI regulation"). Returns title, description, content snippet, source, and publication date. Supports language and country filters. |
 | `top_headlines` | Fetch current top news headlines from GNews (requires BYO API key). Optionally filter by category (general, world, nation, business, technology, entertainment, sports, science, health), country code, and language. Returns up to 100 articles with title, description, source, and publication date. |
 
 ## Quick Start
