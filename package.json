@@ -1,6 +1,6 @@
 {
   "name": "@pipeworx/mcp-gnews",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "GNews MCP — Global news search via GNews API (gnews.io)",
   "type": "module",
   "main": "lib/index.js",
@@ -27,7 +27,7 @@
     "mode": "gateway",
     "slug": "gnews",
     "gatewaySlug": "gnews",
-    "sourceHash": "v1-d7f4f0578907b1d524fe39a30067b78909fc12e8be766d32c3ed2bd2fadf3c94",
-    "sourceCommit": "4844029e402d6bd2fe735add8abf6d46735f8ed5"
+    "sourceHash": "v1-b2778395841aa55d28eb5913f08b8df88ba1b89dfc43f4b059904c6a3c66dafb",
+    "sourceCommit": "030233f6b150a38a44421f88a5fcbad123f0fea8"
   }
 }
